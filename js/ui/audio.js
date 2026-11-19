@@ -1,6 +1,6 @@
 /**
  * Web Audio Synthesizer for Buzzer & Click Sound Effects
- * Plays sound for 2 seconds when triggered, then automatically mutes audio
+ * Plays sound for 1 second when triggered, then automatically mutes audio
  * while continuing visual animation until reset.
  */
 
@@ -65,11 +65,11 @@ export class AudioEngine {
         this.buzzerOsc.start();
         this.isBuzzing = true;
 
-        // Requirement: Play audio for 2 seconds, then stop audio while animation continues
+        // Requirement: Play audio for 1 second, then stop audio while animation continues
         if (this.buzzerTimeout) clearTimeout(this.buzzerTimeout);
         this.buzzerTimeout = setTimeout(() => {
             this.silenceBuzzer();
-        }, 2000);
+        }, 1000);
     }
 
     silenceBuzzer() {

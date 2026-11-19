@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. Initialize Simulation Engine
     const engine = new SimulationEngine();
 
-    // 2. Initialize Audio Synthesizer (with 2-second automatic timeout)
+    // 2. Initialize Audio Synthesizer (with 1-second automatic timeout)
     const audioEngine = new AudioEngine();
 
     // 3. Initialize Chronological Event Log & Statistics Modal (Top-Left Dropdown)
