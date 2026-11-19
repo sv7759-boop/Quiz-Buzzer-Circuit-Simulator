@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Quiz Buzzer Circuit Simulator</title>
+    
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/circuit.css">
+</head>
+<body>
+
+    <!-- Header Section -->
+    <header class="app-header">
+        <div class="header-brand">
+            <!-- Top-Left Dropdown Menu -->
+            <div class="top-nav-menu-wrapper">
+                <button id="top-menu-btn" class="top-menu-btn" title="System Menu">
+                    <span class="menu-bar"></span>
+                    <span class="menu-bar"></span>
+                    <span class="menu-bar"></span>
+                </button>
+                <div id="top-nav-dropdown" class="top-nav-dropdown">
+                    <div class="dropdown-header">System Operations</div>
+                    <a href="#" id="menu-view-logs" class="dropdown-item">
+                        <span class="item-icon">📊</span>
+                        <span>Chronological Log & Statistics</span>
+                    </a>
+                    <a href="#" id="menu-quick-reset" class="dropdown-item" onclick="document.getElementById('btn-master-reset').click();">
+                        <span class="item-icon">🔄</span>
+                        <span>Clear Latches (Reset)</span>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-info">
+                        Quiz Buzzer Simulator v1.0<br>
+                        Digital Logic Lab (74HC Series)
+                    </div>
+                </div>
+            </div>
+
+            <span class="brand-icon">⚡</span>
+            <div>
+                <h1 class="app-title">QUIZ BUZZER CIRCUIT SIMULATOR</h1>
+                <p class="app-subtitle">4-CHANNEL DIGITAL LOGIC LAB | 74HC SERIES EQUIVALENT</p>
+            </div>
+        </div>
+
+        <div class="header-controls">
+            <!-- Master Power Switch -->
+            <div class="power-switch-container">
+                <span class="power-label">POWER (+5V)</span>
+                <label class="switch">
+                    <input type="checkbox" id="power-toggle" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <!-- Audio Toggle Button -->
+            <button id="btn-audio-toggle" class="btn-header" title="Toggle Simulation Sounds">
+                🔊 Audio: ON (2s Auto)
+            </button>
+
+            <!-- Master Circuit Reset Button -->
+            <button id="btn-master-reset" class="btn-header btn-reset-master" title="Reset Latches & Unlock All Channels (Key: R or Space)">
+                🔄 RESET (R)
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Layout Grid -->
+    <main class="app-layout">
+        
+        <!-- Left Sidebar: Contestant Stations (Green, Yellow, Pink, Violet) -->
+        <aside class="team-panel">
+            <div class="panel-header">
+                <span class="panel-title">Contestant Stations</span>
+                <span class="power-label">4 CHANNELS</span>
+            </div>
+
+            <!-- Team 1: GREEN (Up to Down: 1) -->
+            <div class="team-card team-card-green" id="team-card-1">
+                <div class="team-card-header">
+                    <span class="team-name team-name-green">TEAM 1 (GREEN)</span>
+                    <div class="led-pip" id="team-led-1" title="LED 1"></div>
+                </div>
+                <button class="team-button team-btn-green" id="team-btn-1">
+                    <span>PUSH TO BUZZ [1]</span>
+                </button>
+                <div class="status-badge badge-ready" id="team-status-1">READY</div>
+            </div>
+
+            <!-- Team 2: YELLOW (Up to Down: 2) -->
+            <div class="team-card team-card-yellow" id="team-card-2">
+                <div class="team-card-header">
+                    <span class="team-name team-name-yellow">TEAM 2 (YELLOW)</span>
+                    <div class="led-pip" id="team-led-2" title="LED 2"></div>
+                </div>
+                <button class="team-button team-btn-yellow" id="team-btn-2">
+                    <span>PUSH TO BUZZ [2]</span>
+                </button>
+                <div class="status-badge badge-ready" id="team-status-2">READY</div>
+            </div>
+
+            <!-- Team 3: PINK (Up to Down: 3) -->
+            <div class="team-card team-card-pink" id="team-card-3">
+                <div class="team-card-header">
+                    <span class="team-name team-name-pink">TEAM 3 (PINK)</span>
+                    <div class="led-pip" id="team-led-3" title="LED 3"></div>
+                </div>
+                <button class="team-button team-btn-pink" id="team-btn-3">
+                    <span>PUSH TO BUZZ [3]</span>
+                </button>
+                <div class="status-badge badge-ready" id="team-status-3">READY</div>
+            </div>
+
+            <!-- Team 4: VIOLET (Up to Down: 4) -->
+            <div class="team-card team-card-violet" id="team-card-4">
+                <div class="team-card-header">
+                    <span class="team-name team-name-violet">TEAM 4 (VIOLET)</span>
+                    <div class="led-pip" id="team-led-4" title="LED 4"></div>
+                </div>
+                <button class="team-button team-btn-violet" id="team-btn-4">
+                    <span>PUSH TO BUZZ [4]</span>
+                </button>
+                <div class="status-badge badge-ready" id="team-status-4">READY</div>
+            </div>
+
+            <div class="keyboard-hint">
+                HOTKEYS: [1, 2, 3, 4] = Buzz | [R / Space] = Reset
+            </div>
+        </aside>
+
+        <!-- Center Workspace: Interactive Schematic Canvas -->
+        <section class="circuit-workspace">
+            <div class="workspace-toolbar">
+                <button id="btn-zoom-out" class="btn-tool" title="Zoom Out">−</button>
+                <span id="zoom-level-text" class="zoom-text">100%</span>
+                <button id="btn-zoom-in" class="btn-tool" title="Zoom In">+</button>
+                <button id="btn-zoom-reset" class="btn-tool" title="Reset Zoom">⟲</button>
+            </div>
+
+            <!-- SVG Circuit Container -->
+            <div id="circuit-canvas-container" class="circuit-canvas-container">
+                <!-- SVG dynamically rendered by CircuitRenderer -->
+            </div>
+
+            <!-- Popover Component Inspector (Appears over clicked part) -->
+            <!-- Handled dynamically by ComponentInspectorPopup -->
+        </section>
+
+        <!-- Right Sidebar: Circuit Telemetry (Retained & Clean) -->
+        <aside class="telemetry-panel">
+            
+            <div class="telemetry-section">
+                <div class="panel-header">
+                    <span class="panel-title">Circuit Telemetry</span>
+                    <span class="power-label">REAL-TIME</span>
+                </div>
+
+                <div class="telemetry-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Selected Team</div>
+                        <div id="val-selected-team" class="val-badge val-low">NONE</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Circuit State</div>
+                        <div id="val-circuit-status" class="val-badge val-ready">WAITING</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Lock-Out Gate</div>
+                        <div id="val-lockout-status" class="val-badge val-low">IDLE (READY)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Storage Latch</div>
+                        <div id="val-latch-status" class="val-badge val-low">ALL CLEARED</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Piezo Buzzer</div>
+                        <div id="val-buzzer-status" class="val-badge val-low">OFF</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">VCC Rail</div>
+                        <div class="val-badge val-high">+5.00 V DC</div>
+                    </div>
+                </div>
+
+                <!-- Channel Pin State Table -->
+                <table class="pin-table">
+                    <thead>
+                        <tr>
+                            <th>Ch</th>
+                            <th>Switch (In)</th>
+                            <th>LED (Out)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>T1 (Green)</td><td><span id="pin-s1" class="val-badge val-low">LOW</span></td><td><span id="pin-led1" class="val-badge val-low">OFF</span></td></tr>
+                        <tr><td>T2 (Yellow)</td><td><span id="pin-s2" class="val-badge val-low">LOW</span></td><td><span id="pin-led2" class="val-badge val-low">OFF</span></td></tr>
+                        <tr><td>T3 (Pink)</td><td><span id="pin-s3" class="val-badge val-low">LOW</span></td><td><span id="pin-led3" class="val-badge val-low">OFF</span></td></tr>
+                        <tr><td>T4 (Violet)</td><td><span id="pin-s4" class="val-badge val-low">LOW</span></td><td><span id="pin-led4" class="val-badge val-low">OFF</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="telemetry-section" style="border-bottom: none;">
+                <div class="panel-header">
+                    <span class="panel-title">Interactive Guide</span>
+                </div>
+                <div class="guide-box">
+                    <p class="guide-text">💡 <strong>Inspector Tip:</strong> Click any component directly on the schematic (gates, latches, switches, LEDs) to view its pin values and live truth table in a floating popup above it.</p>
+                    <p class="guide-text" style="margin-top: 8px;">📊 <strong>Statistics &amp; Log:</strong> Click the top-left menu (☰) to view the chronological log and game statistics.</p>
+                </div>
+            </div>
+
+        </aside>
+    </main>
+
+    <!-- Chronological Event Log & Statistics Modal (Moved from right sidebar) -->
+    <div id="log-stats-modal" class="modal-wrapper hidden">
+        <div id="modal-backdrop" class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title-box">
+                    <span class="modal-icon">📊</span>
+                    <div>
+                        <h2 class="modal-title">Chronological Log &amp; Match Statistics</h2>
+                        <p class="modal-subtitle">Live hardware telemetry and response metrics</p>
+                    </div>
+                </div>
+                <button id="modal-close-btn" class="modal-close-btn" title="Close Modal">&times;</button>
+            </div>
+
+            <!-- Match Statistics Grid -->
+            <div class="stats-cards-grid">
+                <div class="stat-box">
+                    <div class="stat-number" id="stat-rounds-count">0</div>
+                    <div class="stat-label">Rounds Won</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="stat-blocked-count">0</div>
+                    <div class="stat-label">Locked-Out Attempts</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="stat-resets-count">0</div>
+                    <div class="stat-label">Reset Pulses</div>
+                </div>
+                <div class="stat-box-teams">
+                    <div class="team-stat-item"><span class="team-badge" style="background: #22c55e;">T1 Green:</span> <strong id="stat-t1-wins">0</strong></div>
+                    <div class="team-stat-item"><span class="team-badge" style="background: #eab308;">T2 Yellow:</span> <strong id="stat-t2-wins">0</strong></div>
+                    <div class="team-stat-item"><span class="team-badge" style="background: #ec4899;">T3 Pink:</span> <strong id="stat-t3-wins">0</strong></div>
+                    <div class="team-stat-item"><span class="team-badge" style="background: #8b5cf6;">T4 Violet:</span> <strong id="stat-t4-wins">0</strong></div>
+                </div>
+            </div>
+
+            <!-- Event History Log List -->
+            <div class="modal-log-section">
+                <div class="modal-log-header">
+                    <span>CHRONOLOGICAL EVENT LOG</span>
+                    <button id="modal-clear-btn" class="btn-clear-log">Reset Stats &amp; Clear Log</button>
+                </div>
+                <div id="modal-event-log-list" class="modal-event-log-list">
+                    <!-- Events populated dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script (ES Module) -->
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
