@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Quiz Buzzer - Video Presentation & Walkthrough</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #000000;
+            --panel: #0d0d0d;
+            --card: #141414;
+            --border: #262626;
+            --accent: #38bdf8;
+            --green: #22c55e;
+            --yellow: #eab308;
+            --pink: #ec4899;
+            --violet: #8b5cf6;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: var(--bg);
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Top Header */
+        header {
+            height: 60px;
+            background: #0a0a0a;
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+        }
+        .badge {
+            background: rgba(56, 189, 248, 0.15);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Player Viewport */
+        .player-viewport {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            position: relative;
+        }
+        .slide-frame {
+            width: 100%;
+            max-width: 1040px;
+            height: 580px;
+            background: #080808;
+            border: 1px solid #333333;
+            border-radius: 14px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.95), 0 0 40px rgba(56, 189, 248, 0.15);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Slide Content Area */
+        .slide-stage {
+            flex: 1;
+            padding: 36px 48px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .slide-title {
+            font-size: 2.1rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 14px;
+            background: linear-gradient(135deg, #ffffff 40%, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .slide-body {
+            font-size: 1.02rem;
+            color: #d4d4d4;
+            line-height: 1.55;
+            max-width: 880px;
+            margin-bottom: 20px;
+        }
+
+        /* Visual Feature Grid on Slides */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-top: 8px;
+        }
+        .feature-card {
+            background: #121212;
+            border: 1px solid #262626;
+            border-radius: 8px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .feature-card h4 {
+            font-size: 0.9rem;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .feature-card p {
+            font-size: 0.78rem;
+            color: #888888;
+            line-height: 1.4;
+        }
+
+        /* Schematic Interactive Preview Mockup */
+        .diagram-preview {
+            background: #000000;
+            border: 1px solid #262626;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            margin-top: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+        }
+        .diagram-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 14px;
+            border-radius: 6px;
+            background: #111111;
+            border: 1px solid #333;
+        }
+        .diagram-arrow {
+            color: var(--accent);
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        /* Bottom Control Bar */
+        .player-bar {
+            height: 68px;
+            background: #0f0f0f;
+            border-top: 1px solid var(--border);
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .transport-controls {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .btn-play {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .btn-play:hover {
+            transform: scale(1.08);
+            box-shadow: 0 0 16px rgba(56, 189, 248, 0.6);
+        }
+        .btn-nav {
+            background: #1f1f1f;
+            color: #fff;
+            border: 1px solid #333;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .btn-nav:hover { background: #2a2a2a; }
+
+        .progress-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            max-width: 500px;
+            margin: 0 20px;
+        }
+        .progress-bar-bg {
+            flex: 1;
+            height: 6px;
+            background: #262626;
+            border-radius: 3px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--accent);
+            transition: width 0.1s linear;
+        }
+        .time-display {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            color: #a3a3a3;
+            min-width: 75px;
+        }
+
+        .audio-status-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(56, 189, 248, 0.1);
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Hidden HTML5 Audio Element playing your ElevenLabs MP3 -->
+    <audio id="narration-audio" src="assets/sounds/narration.mp3" preload="auto"></audio>
+
+    <header>
+        <div class="brand">
+            <span>⚡ QUIZ BUZZER SIMULATOR</span>
+            <span class="badge">PROFESSOR NARRATION (1:37)</span>
+        </div>
+        <div>
+            <a href="index.html" class="btn-nav" style="text-decoration:none;">🚀 Open Live Simulator</a>
+        </div>
+    </header>
+
+    <main class="player-viewport">
+        <div class="slide-frame">
+            <div class="slide-stage" id="slide-stage">
+                <!-- Dynamically populated per scene -->
+            </div>
+
+            <!-- Media Player Toolbar -->
+            <div class="player-bar">
+                <div class="transport-controls">
+                    <button class="btn-play" id="btn-play-pause">▶</button>
+                    <button class="btn-nav" id="btn-prev">⏮ Prev</button>
+                    <button class="btn-nav" id="btn-next">Next ⏭</button>
+                </div>
+
+                <div class="progress-box">
+                    <span class="time-display" id="time-current">0:00</span>
+                    <div class="progress-bar-bg" id="progress-bar-bg">
+                        <div class="progress-bar-fill" id="progress-bar-fill"></div>
+                    </div>
+                    <span class="time-display" id="time-total">1:37</span>
+                </div>
+
+                <div class="audio-status-pill">
+                    <span>🎙️ Adam: Engineering Professor</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Exact timing synchronized to your 97-second ElevenLabs MP3
+        const scenes = [
+            {
+                startTime: 0,
+                tag: "01 / 07 • OVERVIEW",
+                title: "Interactive Quiz Buzzer Circuit Simulator",
+                body: "Welcome to the 4-Channel Quiz Buzzer Circuit Simulator! This is a professional digital logic laboratory that models the exact physical and electrical behavior of standard 74HC-series digital logic gates with real-time feedback.",
+                extraHtml: `
+                    <div class="feature-grid">
+                        <div class="feature-card" style="border-left: 3px solid #22c55e;">
+                            <h4>🟢 Team 1 Green</h4>
+                            <p>Channel 1 with tactile input & pull-down network.</p>
+                        </div>
+                        <div class="feature-card" style="border-left: 3px solid #eab308;">
+                            <h4>🟡 Team 2 Yellow</h4>
+                            <p>Channel 2 with independent SR bistable cell.</p>
+                        </div>
+                        <div class="feature-card" style="border-left: 3px solid #ec4899;">
+                            <h4>🌸 Team 3 Pink</h4>
+                            <p>Channel 3 with current-limiting resistor & LED.</p>
+                        </div>
+                        <div class="feature-card" style="border-left: 3px solid #8b5cf6;">
+                            <h4>🟣 Team 4 Violet</h4>
+                            <p>Channel 4 with full common-ground return.</p>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                startTime: 14.5,
+                tag: "02 / 07 • HARDWARE TOPOLOGY",
+                title: "Complete Dual-Rail Electrical Connectivity",
+                body: "Every node in the circuit has a strictly defined electrical state. The top features a continuous +5V VCC power rail, and the bottom features a common 0V Ground return bus.",
+                extraHtml: `
+                    <div class="diagram-preview">
+                        <div class="diagram-step" style="border-color:#ef4444;">
+                            <span style="color:#ef4444; font-weight:700;">+5.0V VCC</span>
+                            <span>Power Supply Rail</span>
+                        </div>
+                        <span class="diagram-arrow">➔</span>
+                        <div class="diagram-step">
+                            <span style="color:#ffffff; font-weight:700;">10kΩ Pull-Down</span>
+                            <span>Defined 0V at Idle</span>
+                        </div>
+                        <span class="diagram-arrow">➔</span>
+                        <div class="diagram-step">
+                            <span style="color:#22c55e; font-weight:700;">Switch S1-S4</span>
+                            <span>Mechanical Snap to VCC</span>
+                        </div>
+                        <span class="diagram-arrow">➔</span>
+                        <div class="diagram-step" style="border-color:#3b82f6;">
+                            <span style="color:#3b82f6; font-weight:700;">0V GND</span>
+                            <span>Complete Return Path</span>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                startTime: 29.0,
+                tag: "03 / 07 • CORE MECHANISM",
+                title: "First-Press Detection & Bistable Latching",
+                body: "When contestant 1 presses their push-button, switch S1 closes to +5V. Because the circuit is idle, the Enable bus is HIGH (+5V). The AND gate evaluates HIGH, injecting a Set pulse into the cross-coupled NOR SR Latch.",
+                extraHtml: `
+                    <div class="diagram-preview">
+                        <div class="diagram-step">
+                            <span style="color:#86efac;">S1 Pressed</span>
+                            <span>Input A = HIGH</span>
+                        </div>
+                        <span class="diagram-arrow">+</span>
+                        <div class="diagram-step">
+                            <span style="color:#38bdf8;">Enable = HIGH</span>
+                            <span>Pin B = 5.0V</span>
+                        </div>
+                        <span class="diagram-arrow">➔</span>
+                        <div class="diagram-step">
+                            <span style="color:#4ade80;">AND Out = HIGH</span>
+                            <span>Sets Latch S Pin</span>
+                        </div>
+                        <span class="diagram-arrow">➔</span>
+                        <div class="diagram-step" style="border-color:#22c55e;">
+                            <span style="color:#22c55e;">Q Latches HIGH</span>
+                            <span>Stored Permanently</span>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                startTime: 43.5,
+                tag: "04 / 07 • LOCK-OUT LOGIC",
+                title: "Automatic Instantaneous Lock-Out Feedback",
+                body: "Once output Q1 goes HIGH, it feeds directly into the two-stage 74HC32 OR-gate tree (Q1+Q2+Q3+Q4). The tree output immediately sets BUSY to HIGH. The 74HC04 Inverter drops global ENABLE to LOW (0V).",
+                extraHtml: `
+                    <div class="diagram-preview">
+                        <div class="diagram-step">
+                            <span style="color:#22c55e;">Q1 is HIGH</span>
+                            <span>Winner Latched</span>
+                        </div>
+                        <span class="diagram-arrow">➔</span>
+                        <div class="diagram-step">
+                            <span style="color:#f59e0b;">74HC32 OR Tree</span>
+                            <span>BUSY = HIGH (1)</span>
+                        </div>
+                        <span class="diagram-arrow">➔</span>
+                        <div class="diagram-step" style="border-color:#f43f5e;">
+                            <span style="color:#f43f5e;">74HC04 Inverter</span>
+                            <span>ENABLE = LOW (0V)</span>
+                        </div>
+                        <span class="diagram-arrow">➔</span>
+                        <div class="diagram-step">
+                            <span style="color:#94a3b8;">Other AND Gates</span>
+                            <span>BLOCKED (0V)</span>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                startTime: 57.5,
+                tag: "05 / 07 • OUTPUT STAGE",
+                title: "LED Indication & 1-Second Audio Buzzer",
+                body: "The latched Q output drives its indicator LED through a 330Ω current-limiting resistor with 9.1 milliamps of forward current. Simultaneously, an NPN transistor buzzer driver activates the piezo sounder for 1 second.",
+                extraHtml: `
+                    <div class="diagram-preview">
+                        <div class="diagram-step" style="border-color:#22c55e;">
+                            <span style="color:#22c55e;">Team LED (ON)</span>
+                            <span>Via 330Ω Resistor</span>
+                        </div>
+                        <span class="diagram-arrow">&amp;</span>
+                        <div class="diagram-step">
+                            <span style="color:#38bdf8;">2N3904 NPN BJT</span>
+                            <span>Low-side Switch</span>
+                        </div>
+                        <span class="diagram-arrow">➔</span>
+                        <div class="diagram-step" style="border-color:#f59e0b;">
+                            <span style="color:#f59e0b;">880Hz Piezo Buzzer</span>
+                            <span>1-Sec Audio + Live Waves</span>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                startTime: 71.0,
+                tag: "06 / 07 • INTERACTIVE TOOLS",
+                title: "Smart Popover Inspector & 2D Workspace Pan",
+                body: "Clicking any gate, switch, latch, or LED opens a non-obstructing inspector card beside the component. You can also click-and-drag across the dark canvas to pan in any direction and zoom with the mouse wheel.",
+                extraHtml: `
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <h4>🔍 Smart Popover</h4>
+                            <p>Opens to the side without covering the component; click again to dismiss.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🖐️ 2D Canvas Pan</h4>
+                            <p>Click & drag to explore large schematics across pure black space.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🔍 Mouse Wheel Zoom</h4>
+                            <p>Smooth zoom scaling from 50% to 250%.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>📊 Statistics Modal</h4>
+                            <p>Top-left dropdown tracks rounds won, blocked hits, and reset counts.</p>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                startTime: 84.5,
+                tag: "07 / 07 • RESET & CONCLUSION",
+                title: "Master Reset Strobe & Full Round Restoration",
+                body: "Pressing Master Reset (R or Space) injects a positive 5-volt pulse down the vertical reset bus into all four latch R inputs. All latches clear to Q=0, the lock-out condition releases, and the next round begins!",
+                extraHtml: `
+                    <div class="diagram-preview">
+                        <div class="diagram-step" style="border-color:#e11d48;">
+                            <span style="color:#f43f5e; font-weight:700;">RESET Strobe</span>
+                            <span>+5V to Latch R Pins</span>
+                        </div>
+                        <span class="diagram-arrow">➔</span>
+                        <div class="diagram-step">
+                            <span style="color:#ffffff;">Q1-Q4 Cleared</span>
+                            <span>All LEDs Turn OFF</span>
+                        </div>
+                        <span class="diagram-arrow">➔</span>
+                        <div class="diagram-step" style="border-color:#22c55e;">
+                            <span style="color:#22c55e;">ENABLE = +5V</span>
+                            <span>All Channels Unlocked</span>
+                        </div>
+                    </div>
+                `
+            }
+        ];
+
+        const audio = document.getElementById('narration-audio');
+        const stage = document.getElementById('slide-stage');
+        const btnPlay = document.getElementById('btn-play-pause');
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+        const progressBarFill = document.getElementById('progress-bar-fill');
+        const progressBarBg = document.getElementById('progress-bar-bg');
+        const timeCurrent = document.getElementById('time-current');
+        const timeTotal = document.getElementById('time-total');
+
+        let currentSceneIndex = 0;
+
+        function renderScene(index) {
+            if (index === currentSceneIndex && stage.children.length > 0) return;
+            currentSceneIndex = index;
+            const s = scenes[index];
+            stage.innerHTML = `
+                <div class="slide-tag">${s.tag}</div>
+                <h2 class="slide-title">${s.title}</h2>
+                <p class="slide-body">${s.body}</p>
+                ${s.extraHtml}
+            `;
+        }
+
+        function formatTime(secs) {
+            const m = Math.floor(secs / 60);
+            const s = Math.floor(secs % 60);
+            return `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        // Synchronize Slides to Audio playback currentTime
+        audio.addEventListener('timeupdate', () => {
+            const cur = audio.currentTime;
+            const dur = audio.duration || 97;
+
+            timeCurrent.textContent = formatTime(cur);
+            progressBarFill.style.width = `${(cur / dur) * 100}%`;
+
+            // Detect current active scene based on timestamp
+            for (let i = scenes.length - 1; i >= 0; i--) {
+                if (cur >= scenes[i].startTime) {
+                    renderScene(i);
+                    break;
+                }
+            }
+        });
+
+        audio.addEventListener('loadedmetadata', () => {
+            timeTotal.textContent = formatTime(audio.duration);
+        });
+
+        audio.addEventListener('ended', () => {
+            btnPlay.textContent = "▶";
+        });
+
+        // Transport Buttons
+        btnPlay.addEventListener('click', () => {
+            if (audio.paused) {
+                audio.play();
+                btnPlay.textContent = "⏸";
+            } else {
+                audio.pause();
+                btnPlay.textContent = "▶";
+            }
+        });
+
+        btnNext.addEventListener('click', () => {
+            if (currentSceneIndex < scenes.length - 1) {
+                audio.currentTime = scenes[currentSceneIndex + 1].startTime;
+            }
+        });
+
+        btnPrev.addEventListener('click', () => {
+            if (currentSceneIndex > 0) {
+                audio.currentTime = scenes[currentSceneIndex - 1].startTime;
+            } else {
+                audio.currentTime = 0;
+            }
+        });
+
+        // Scrubbing on Progress Bar
+        progressBarBg.addEventListener('click', (e) => {
+            const rect = progressBarBg.getBoundingClientRect();
+            const clickPos = (e.clientX - rect.left) / rect.width;
+            audio.currentTime = clickPos * (audio.duration || 97);
+        });
+
+        // Initialize First Scene
+        renderScene(0);
+    </script>
+</body>
+</html>
