@@ -534,16 +534,18 @@ input:checked + .slider:before {
 .circuit-canvas-container {
     width: 100%;
     height: 100%;
-    overflow: auto;
+    overflow: hidden; /* Prevent default browser scrollbars interfering with 2D pan */
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: grab;
     background-color: #000000;
+    user-select: none;
 }
 
-.circuit-canvas-container:active {
-    cursor: grabbing;
+.circuit-canvas-container:active,
+.circuit-canvas-container.panning {
+    cursor: grabbing !important;
 }
 
 /* Popover Component Inspector (Smart Side-Opening with Smooth Slide & Scale Animations) */

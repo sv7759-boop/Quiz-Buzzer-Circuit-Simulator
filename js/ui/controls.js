@@ -1,13 +1,22 @@
 /**
  * UI Controls and Hardware Interactivity Module
- * Handles Team buttons, Reset, Power Toggle, Audio Toggle, and Keyboard shortcuts
+ * Handles Team buttons, Reset, Power Toggle, Audio Toggle, Keyboard shortcuts,
+ * and Interactive Click-and-Drag Pan + Mouse Wheel Zoom.
  */
 
 export class UIControls {
     constructor(engine, audioEngine) {
         this.engine = engine;
         this.audio = audioEngine;
+        this.zoomLevel = 1.0;
+        this.panX = 0;
+        this.panY = 0;
+        this.isPanning = false;
+        this.startX = 0;
+        this.startY = 0;
+
         this.initControls();
+        this.initPanZoom();
         this.initKeyboard();
     }
 
@@ -16,7 +25,6 @@ export class UIControls {
         for (let i = 1; i <= 4; i++) {
             const btn = document.getElementById(`team-btn-${i}`);
             if (btn) {
-                // Support both pointer down/up and mouse events for momentary switch feel
                 btn.addEventListener('pointerdown', (e) => {
                     e.preventDefault();
                     if (this.engine.getState().audioEnabled) this.audio.playClick();
@@ -59,54 +67,98 @@ export class UIControls {
             audioBtn.addEventListener('click', () => {
                 const cur = this.engine.getState().audioEnabled;
                 this.engine.setAudioEnabled(!cur);
-                audioBtn.innerHTML = !cur ? `🔊 Audio: ON` : `🔇 Audio: MUTED`;
+                audioBtn.innerHTML = !cur ? `🔊 Audio: ON (1s Auto)` : `🔇 Audio: MUTED`;
                 audioBtn.classList.toggle('muted', cur);
             });
         }
+    }
 
-        // Zoom & Pan buttons
+    initPanZoom() {
         const btnZoomIn = document.getElementById('btn-zoom-in');
         const btnZoomOut = document.getElementById('btn-zoom-out');
         const btnZoomReset = document.getElementById('btn-zoom-reset');
         const canvasContainer = document.getElementById('circuit-canvas-container');
 
-        let zoomLevel = 1.0;
-        if (btnZoomIn && canvasContainer) {
+        if (!canvasContainer) return;
+
+        // Toolbar Buttons
+        if (btnZoomIn) {
             btnZoomIn.addEventListener('click', () => {
-                zoomLevel = Math.min(zoomLevel + 0.15, 2.2);
-                this.applyZoom(canvasContainer, zoomLevel);
+                this.zoomLevel = Math.min(this.zoomLevel + 0.15, 2.5);
+                this.applyTransform();
             });
         }
-        if (btnZoomOut && canvasContainer) {
+        if (btnZoomOut) {
             btnZoomOut.addEventListener('click', () => {
-                zoomLevel = Math.max(zoomLevel - 0.15, 0.6);
-                this.applyZoom(canvasContainer, zoomLevel);
+                this.zoomLevel = Math.max(this.zoomLevel - 0.15, 0.5);
+                this.applyTransform();
             });
         }
-        if (btnZoomReset && canvasContainer) {
+        if (btnZoomReset) {
             btnZoomReset.addEventListener('click', () => {
-                zoomLevel = 1.0;
-                this.applyZoom(canvasContainer, zoomLevel);
+                this.zoomLevel = 1.0;
+                this.panX = 0;
+                this.panY = 0;
+                this.applyTransform();
             });
         }
+
+        // Mouse Wheel Zoom (smooth zoom in/out at pointer)
+        canvasContainer.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -0.1 : 0.1;
+            this.zoomLevel = Math.min(Math.max(this.zoomLevel + delta, 0.5), 2.5);
+            this.applyTransform();
+        }, { passive: false });
+
+        // Click-and-Drag Pan Functionality
+        canvasContainer.addEventListener('mousedown', (e) => {
+            // Don't pan if clicking an interactive switch or close button
+            if (e.target.closest('.interactive-switch') || e.target.closest('#circuit-inspector-popup') || e.button !== 0) {
+                return;
+            }
+
+            this.isPanning = true;
+            this.startX = e.clientX - this.panX;
+            this.startY = e.clientY - this.panY;
+            canvasContainer.classList.add('panning');
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!this.isPanning) return;
+            this.panX = e.clientX - this.startX;
+            this.panY = e.clientY - this.startY;
+            this.applyTransform();
+        });
+
+        const stopPan = () => {
+            if (this.isPanning) {
+                this.isPanning = false;
+                canvasContainer.classList.remove('panning');
+            }
+        };
+
+        window.addEventListener('mouseup', stopPan);
+        window.addEventListener('mouseleave', stopPan);
     }
 
-    applyZoom(container, level) {
-        const svg = container.querySelector('svg');
+    applyTransform() {
+        const canvasContainer = document.getElementById('circuit-canvas-container');
+        if (!canvasContainer) return;
+        const svg = canvasContainer.querySelector('svg');
         if (svg) {
-            svg.style.transform = `scale(${level})`;
+            svg.style.transform = `translate(${this.panX}px, ${this.panY}px) scale(${this.zoomLevel})`;
             svg.style.transformOrigin = 'center center';
         }
+
         const zoomText = document.getElementById('zoom-level-text');
         if (zoomText) {
-            zoomText.textContent = `${Math.round(level * 100)}%`;
+            zoomText.textContent = `${Math.round(this.zoomLevel * 100)}%`;
         }
     }
 
     initKeyboard() {
-        // Hotkeys: Keys 1, 2, 3, 4 for Teams, R for Reset, Space for Reset
         window.addEventListener('keydown', (e) => {
-            // Ignore if typing in text input (if any)
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
             const key = e.key;
@@ -134,9 +186,6 @@ export class UIControls {
         });
     }
 
-    /**
-     * Synchronize Team buttons with circuit lockout state
-     */
     update(state) {
         for (let i = 1; i <= 4; i++) {
             const card = document.getElementById(`team-card-${i}`);
@@ -149,9 +198,7 @@ export class UIControls {
             const isSelected = state.selectedTeam === i;
             const isLocked = state.teams[i].locked;
             const isPressed = state.switches[i];
-            const isLedOn = state.teams[i].led;
 
-            // Reset classes
             card.classList.remove('team-active', 'team-locked', 'team-pressed');
             btn.classList.remove('btn-pressed', 'btn-locked', 'btn-selected');
 
@@ -170,7 +217,7 @@ export class UIControls {
             } else if (isLocked) {
                 card.classList.add('team-locked');
                 btn.classList.add('btn-locked');
-                btn.disabled = false; // keep clickable so user can observe lockout blocking in simulation!
+                btn.disabled = false;
                 statusBadge.textContent = 'LOCKED OUT';
                 statusBadge.className = 'status-badge badge-locked';
                 ledPip.classList.remove('led-pip-on');
