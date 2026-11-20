@@ -57,8 +57,13 @@ export class TelemetryPanel {
         }
 
         if (this.buzzerVal) {
-            this.buzzerVal.textContent = state.buzzer ? 'ACTIVE' : 'OFF';
-            this.buzzerVal.className = `val-badge ${state.buzzer ? 'val-high' : 'val-low'}`;
+            if (!state.buzzer) {
+                this.buzzerVal.textContent = 'OFF';
+                this.buzzerVal.className = 'val-badge val-low';
+            } else {
+                this.buzzerVal.textContent = 'ACTIVE (1s AUTO)';
+                this.buzzerVal.className = 'val-badge val-high';
+            }
         }
 
         for (let i = 1; i <= 4; i++) {

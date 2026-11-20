@@ -520,12 +520,13 @@ export class CircuitRenderer {
             <path d="M ${x + 57} ${y - 20} A 25 25 0 0 1 ${x + 57} ${y + 20}" class="sound-wave sound-wave-2" stroke="#94a3b8" stroke-width="2" fill="none" stroke-linecap="round" />
 
             <text x="${x + 22}" y="${y + 52}" class="comp-title">${label}</text>
+            <text x="${x + 22}" y="${y + 63}" class="comp-val-text" fill="#94a3b8" font-size="8.5" text-anchor="middle">1s Auto-Cutoff</text>
         `;
 
         this.addClickListener(g, {
             name: `Piezoelectric Acoustic Buzzer`,
-            type: `Piezoelectric Transducer (Continuous Tone @ 880Hz)`,
-            description: `Produces audio alert when energized across +5V VCC and the NPN driver stage. Signifies to all participants that a team has latched in.`
+            type: `Piezoelectric Transducer (Auto-Stop @ 1s, 880Hz)`,
+            description: `Produces audio alert when energized across +5V VCC and the NPN driver stage. Automatically silences after 1.0 second while preserving visual latch state and LED indication until Reset.`
         });
 
         this.compLayer.appendChild(g);
@@ -754,7 +755,7 @@ export class CircuitRenderer {
             }
         }
 
-        // 5. Buzzer Acoustic Waves
+        // 5. Buzzer Acoustic Waves (Audio auto-silences after 1s, waves pulse while active)
         const buzzerComp = this.components['buzzer-1'];
         if (buzzerComp) {
             const waves = buzzerComp.querySelectorAll(".sound-wave");
@@ -764,7 +765,20 @@ export class CircuitRenderer {
                     w.setAttribute("stroke", "#f59e0b");
                     w.style.opacity = "1";
                 });
+                // Auto-stop wave animation after 1 second to match 1-second auto buzzer cutoff
+                if (this.buzzerWaveTimeout) clearTimeout(this.buzzerWaveTimeout);
+                this.buzzerWaveTimeout = setTimeout(() => {
+                    buzzerComp.classList.remove("buzzer-active");
+                    waves.forEach(w => {
+                        w.setAttribute("stroke", "#475569");
+                        w.style.opacity = "0.2";
+                    });
+                }, 1000);
             } else {
+                if (this.buzzerWaveTimeout) {
+                    clearTimeout(this.buzzerWaveTimeout);
+                    this.buzzerWaveTimeout = null;
+                }
                 buzzerComp.classList.remove("buzzer-active");
                 waves.forEach(w => {
                     w.setAttribute("stroke", "#475569");
